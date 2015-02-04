@@ -7,8 +7,11 @@ pipeline<-function(n=4, topology="random", #model properties
                    verbose=1, #how much information to print
                    model=NULL, #input model if given
                    clingoconf="--configuration=crafty --time-limit=25000 --quiet=1,0",
-                   restrict = c() #what restrictions apply to model space, note that encode file 
-                                  #tells which restrictions are forced by the learned model space
+                   restrict = c(),  #what restrictions apply to model space, note that encode file 
+                                    #tells which restrictions are forced by the learned model space
+                   generate = TRUE, #If true, then will generate randomGraph/data depending on
+                                    #presence of input model.
+                   evaluate = FALSE #If true then evaluates the correctness of the discovered model.
                    ) {
   #Pipeline for running the algorithm inference. This first creates model and data, then runs
   #the requested inference and finally assesses and prints out the quality of the inference.
@@ -55,43 +58,43 @@ pipeline<-function(n=4, topology="random", #model properties
   #setting n globally
   global_n<<-n<<-n
   global_indeps<<-list()
-  
-  if (verbose) cat('1st stage: Generate data.\n')
-  ##############################################################################
-  if (verbose) cat("\tGenerating the model: n=",n,'.\n',sep='')
-  
-  if ( is.null(model) ) {
-    M<<-randomGraph(n=n,restrict=restrict,topology=topology)
-  } else { #if model is given use that
-    M<<-model
+  if(generate){
+      if (verbose) cat('1st stage: Generate data.\n')
+##############################################################################
+      if (verbose) cat("\tGenerating the model: n=",n,'.\n',sep='')
+      
+      if ( is.null(model) ) {
+          M<<-randomGraph(n=n,restrict=restrict,topology=topology)
+      } else { #if model is given use that
+          M<<-model
+      }
+      
+      if (verbose > 10) print(M)
+      
+##############################################################################
+      if (verbose) cat("\tGenerating experiment configuration: exconf=",exconf,'.\n',sep='')
+      
+      E<-experimentConfiguration(n,exconf)
+      
+      if (verbose > 10) print(E)
+      
+      if ( test == "oracle" ) { 
+          if (verbose) cat("\tSkipping sample data generation, since using oracle.\n",sep='')  
+          D<-list()
+          for ( i in 1:nrow(E)) { #the data consist of manipulated graphs where
+                                        #edge heads into the intervened variables are cut
+              D[[i]]<-list(e=E[i,],M=M)
+              J<-which( D[[i]]$e==1 )
+              D[[i]]$M$G[J,]<-0
+              D[[i]]$M$Ge[J,]<-0
+              D[[i]]$M$Ge[,J]<-0
+          }
+      } else {
+          if (verbose) cat("\tGenerating sample data: N=",N,'.\n',sep='')
+          D<-createDataSet(M,E,N)
+      }
+      cat('1st stage: Done.\n')
   }
-  
-  if (verbose > 10) print(M)
-  
-  ##############################################################################
-  if (verbose) cat("\tGenerating experiment configuration: exconf=",exconf,'.\n',sep='')
-  
-  E<-experimentConfiguration(n,exconf)
-  
-  if (verbose > 10) print(E)
-  
-  if ( test == "oracle" ) { 
-    if (verbose) cat("\tSkipping sample data generation, since using oracle.\n",sep='')  
-    D<-list()
-    for ( i in 1:nrow(E)) { #the data consist of manipulated graphs where
-                            #edge heads into the intervened variables are cut
-      D[[i]]<-list(e=E[i,],M=M)
-      J<-which( D[[i]]$e==1 )
-      D[[i]]$M$G[J,]<-0
-      D[[i]]$M$Ge[J,]<-0
-      D[[i]]$M$Ge[,J]<-0
-    }
-  } else {
-    if (verbose) cat("\tGenerating sample data: N=",N,'.\n',sep='')
-    D<-createDataSet(M,E,N)
-  }
-  cat('1st stage: Done.\n')
-  
   ##############################################################################
   if (verbose) cat('2nd stage: Run the learning algorithm.\n')  
   
@@ -115,43 +118,43 @@ pipeline<-function(n=4, topology="random", #model properties
   if ( is.infinite(L$solving_time) ) {
     return(L)
   }
-  
-  cat('3rd Stage: Evaluation.\n')
-  cat('\tObjective of the learned model claimed by solver=', L$objective,'\n')
+  if(evaluate){  
+      cat('3rd Stage: Evaluation.\n')
+      cat('\tObjective of the learned model claimed by solver=', L$objective,'\n')
 
-  if (  solver == "clingo" ) {
-    cat('\tObjective of the learned model (recalculated)= ')    
-    objective_L<-objective(L, global_indeps, asp=(solver=='clingo'), weight=weight, verbose=0 )
-    cat(objective_L,'\n')
+      if (  solver == "clingo" ) {
+          cat('\tObjective of the learned model (recalculated)= ')    
+          objective_L<-objective(L, global_indeps, asp=(solver=='clingo'), weight=weight, verbose=0 )
+          cat(objective_L,'\n')
 
-    if ( abs(objective_L - L$objective) > 1e-3 &&
-      round(1000*objective_L) != L$objective &&
-      round(objective_L) != round(1000*L$objective) ) {
-        cat('\tObjective check negative.\n')  
-    } else {
-      cat('\tObjective check OK.\n')        
-    }
-  } else {
-    cat('\tObjective check SKIPPED.\n')  
+          if ( abs(objective_L - L$objective) > 1e-3 &&
+              round(1000*objective_L) != L$objective &&
+              round(objective_L) != round(1000*L$objective) ) {
+              cat('\tObjective check negative.\n')  
+          } else {
+              cat('\tObjective check OK.\n')        
+          }
+      } else {
+          cat('\tObjective check SKIPPED.\n')  
+      }
+      cat('\tObjective of the true model= ')
+      objective_M<-objective(M,global_indeps,asp=(solver=='clingo'),
+                             weight=weight,verbose=0 )
+      cat(objective_M,'\n')
+      L$true_objective<-objective_M
+
+      cat('\tLearned model added= ')
+      cmp<-compare(L=L,M=M,verbose=0,passive=FALSE)
+
+      cat(cmp$added,'and deleted=',cmp$deleted,'dependencies.\n')
+      
+      L$added<-cmp$added
+      L$deleted<-cmp$deleted 
+      L$totaldeps<-cmp$totaldeps
+      L$totalindeps<-cmp$totalindeps
+      
+      cat('3rd Stage: Done.\n')
   }
-  cat('\tObjective of the true model= ')
-  objective_M<-objective(M,global_indeps,asp=(solver=='clingo'),
-                           weight=weight,verbose=0 )
-  cat(objective_M,'\n')
-  L$true_objective<-objective_M
-
-  cat('\tLearned model added= ')
-  cmp<-compare(L=L,M=M,verbose=0,passive=FALSE)
-
-  cat(cmp$added,'and deleted=',cmp$deleted,'dependencies.\n')
-    
-  L$added<-cmp$added
-  L$deleted<-cmp$deleted 
-  L$totaldeps<-cmp$totaldeps
-  L$totalindeps<-cmp$totalindeps
-  
-  cat('3rd Stage: Done.\n')
-  
   ############################################################################
   #Add various input info to L
   L$n<-n
