@@ -11,7 +11,8 @@ pipeline<-function(n=4, topology="random", #model properties
                                     #tells which restrictions are forced by the learned model space
                    generate = TRUE, #If true, then will generate randomGraph/data depending on
                                     #presence of input model.
-                   evaluate = FALSE #If true then evaluates the correctness of the discovered model.
+                   evaluate = FALSE, #If true then evaluates the correctness of the discovered model.
+				   D = NULL # Inputed dataset (if any).
                    ) {
   #Pipeline for running the algorithm inference. This first creates model and data, then runs
   #the requested inference and finally assesses and prints out the quality of the inference.
