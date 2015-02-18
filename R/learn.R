@@ -3,8 +3,8 @@ learn<-function(   D, #data
                    weight="constant",encode="plain",
                    p=0.05,
                    alpha=1.5,
-                   clingoconf="--configuration=crafty --time-limit=25000 --quiet=1,0",
-                   verbose=1) {
+                   clingoconf="--configuration=crafty --time-limit=25000 --verbose=2",
+                   verbose=12) {
   #Pipeline for running the asp inference
   #options:
   #Independence test properties:
@@ -107,7 +107,7 @@ learn<-function(   D, #data
     build_tree(file="./../tmp/pipeline.pre.asp" )
   } else {
     cat('\t\tWriting asp constants (old encoding)...\n')
-    writeAspSets(n,file="./../tmp/pipeline.pre.asp")
+#    writeAspSets(n,file="./../tmp/pipeline.pre.asp")
     cat('\t\tDone.\n')
   }
   
@@ -121,7 +121,7 @@ learn<-function(   D, #data
   
   system(paste("./../ASP/clingo430",
                clingoconf,
-               './../tmp/pipeline.pre.asp','./../tmp/pipeline.ind',asp_program,
+               './../tmp/mypipeline.pre.asp','./../tmp/mypipeline.ind',asp_program,
                '| tee ./../tmp/pipeline.ind.clingo') )
   
   sol_file<-"./../tmp/pipeline.ind.clingo"    

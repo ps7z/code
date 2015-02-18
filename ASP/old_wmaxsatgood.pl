@@ -1,14 +1,19 @@
 % guess
 
-%{ before(X,Y) } :- node(X), node(Y), X != Y.
-{ edge(X,Y) } :- node(X), node(Y), X != Y.
-{ conf(X,Y) } :- node(X), node(Y), X<Y.
+before(1,2).
+before(1,3).
+before(1,4).
+before(2,3).
+before(2,4).
+before(3,4).
 
 %the order is  transitive
-%:-not before(X,Z), before(X,Y), before(Y,Z), node(X), node(Y), node(Z), X != Y, Y != Z, X != Z.
+:-not before(X,Z), before(X,Y), before(Y,Z), node(X), node(Y), node(Z), X != Y, Y != Z, X != Z.
 %before relation cannot happen in both directions
-%:-not before(Z,Y), not before(Y,Z), node(Y), node(Z), Y != Z.
-%:-before(Z,Y), before(Y,Z), node(Y), node(Z), Y != Z.
+:-not before(Z,Y), not before(Y,Z), node(Y), node(Z), Y != Z.
+:-before(Z,Y), before(Y,Z), node(Y), node(Z), Y != Z.
+{ edge(X,Y) } :- node(X), node(Y), before(X,Y), X != Y.
+%%{ conf(X,Y) } :- node(X), node(Y), X<Y.
 
 %:- edge(X,Y), indep(X,Y,C,J), not ismember(C,X), not ismember(C,Y),  not ismember(J,Y), X<Y.
 %:- edge(Y,X), indep(X,Y,C,J), not ismember(C,X), not ismember(C,Y),  not ismember(J,X), X<Y.
@@ -31,7 +36,7 @@ pathth(X,Y,C,J) :- edge(X,Y),not ismember(J,Y),not ismember(C,X),jset(J),cset(C)
 
 
 % <-> => <-->
-pathhh(X,Y,C,J) :- conf(X,Y),not ismember(J,X),not ismember(J,Y),jset(J),cset(C),X != Y. 
+%%pathhh(X,Y,C,J) :- conf(X,Y),not ismember(J,X),not ismember(J,Y),jset(J),cset(C),X != Y. 
 %OK
 
 %no need for base case for --- it is never added
@@ -56,8 +61,8 @@ pathhh(X,Z,C,J) :- edge(Y,X), pathth(Y,Z,C,J), not ismember(C,Y), not ismember(J
 %OK
 
 % <-> + --> => <->
-pathhh(X,Z,C,J) :- conf(Y,X), pathth(Y,Z,C,J), not ismember(C,Y), not ismember(J,Y),not ismember(J,X),jset(J),cset(C), X < Z, Y<X, Y != Z.
-pathhh(X,Z,C,J) :- conf(X,Y), pathth(Y,Z,C,J), not ismember(C,Y), not ismember(J,Y),not ismember(J,X),jset(J),cset(C), X < Z, X<Y, Y != Z.
+%%pathhh(X,Z,C,J) :- conf(Y,X), pathth(Y,Z,C,J), not ismember(C,Y), not ismember(J,Y),not ismember(J,X),jset(J),cset(C), X < Z, Y<X, Y != Z.
+%%pathhh(X,Z,C,J) :- conf(X,Y), pathth(Y,Z,C,J), not ismember(C,Y), not ismember(J,Y),not ismember(J,X),jset(J),cset(C), X < Z, X<Y, Y != Z.
 %OK
 
 % X->Y + Y<->Z => X<->Z
@@ -66,10 +71,10 @@ pathhh(X,Z,C,J) :- edge(Y,X), pathhh(Z,Y,C,J), not ismember(C,Y),not ismember(J,
 %KOK
 
 % X<->Y + Y<->Z => X<->Z
-pathhh(X,Z,C,J) :- conf(X,Y), pathhh(Y,Z,C,J), ismember(C,Y), not ismember(J,Y), not ismember(J,X), not ismember(J,Z),jset(J),cset(C), X < Z, X < Y, Y < Z.
-pathhh(X,Z,C,J) :- conf(Y,X), pathhh(Y,Z,C,J), ismember(C,Y), not ismember(J,Y), not ismember(J,X), not ismember(J,Z),jset(J),cset(C), X < Z, Y < X, Y < Z.
-pathhh(X,Z,C,J) :- conf(X,Y), pathhh(Z,Y,C,J), ismember(C,Y), not ismember(J,Y), not ismember(J,X), not ismember(J,Z),jset(J),cset(C), X < Z, X < Y, Z < Y.
-pathhh(X,Z,C,J) :- conf(Y,X), pathhh(Z,Y,C,J), ismember(C,Y), not ismember(J,Y), not ismember(J,X), not ismember(J,Z),jset(J),cset(C), X < Z, Y < X, Z < Y.
+%%pathhh(X,Z,C,J) :- conf(X,Y), pathhh(Y,Z,C,J), ismember(C,Y), not ismember(J,Y), not ismember(J,X), not ismember(J,Z),jset(J),cset(C), X < Z, X < Y, Y < Z.
+%%pathhh(X,Z,C,J) :- conf(Y,X), pathhh(Y,Z,C,J), ismember(C,Y), not ismember(J,Y), not ismember(J,X), not ismember(J,Z),jset(J),cset(C), X < Z, Y < X, Y < Z.
+%%pathhh(X,Z,C,J) :- conf(X,Y), pathhh(Z,Y,C,J), ismember(C,Y), not ismember(J,Y), not ismember(J,X), not ismember(J,Z),jset(J),cset(C), X < Z, X < Y, Z < Y.
+%%pathhh(X,Z,C,J) :- conf(Y,X), pathhh(Z,Y,C,J), ismember(C,Y), not ismember(J,Y), not ismember(J,X), not ismember(J,Z),jset(J),cset(C), X < Z, Y < X, Z < Y.
 %OK
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

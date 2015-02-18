@@ -6,8 +6,16 @@ randomGraph<-function(n,restrict=c('acyclic'),pedge=1/(n-1), topology="random") 
   #         such that the density does not explode with increasing n
   #         (also note that for acyclic models the code , such that it is similar to )
   
-  
-  if ( !any(restrict=="sufficient")) {
+  if (topology == 'example') {
+    #y-structure
+    M<-list(G=array(0,c(n,n)),Ge=array(0,c(n,n)),Gs=array(0,c(n,n)))
+    M$G[3,1]<-M$G[3,2]<-M$G[4,3]<-1
+
+    M$B<-M$G*matrix(runif(n*n,0.2,0.8),n,n)*matrix(sample(c(-1,1),n*n,replace=TRUE),n,n)
+    M$Ce<-diag( abs(1+0.1*rnorm(n)) )
+    M$Ge<- diag(n)
+    return(M)}
+    if ( !any(restrict=="sufficient")) {
 
     #Create a sufficient model for the causal part
     M<-randomGraph(n,union(restrict,"sufficient"),pedge=pedge/2)
@@ -35,6 +43,7 @@ randomGraph<-function(n,restrict=c('acyclic'),pedge=1/(n-1), topology="random") 
   
   #sampling of the sufficient model
   M<-list(G=array(0,c(n,n)),Ge=array(0,c(n,n)),Gs=array(0,c(n,n)))
+  
   if ( topology=='random') {
     #sample G either acyclic or possibly cyclic
     if ( any( restrict == 'acyclic') ) {
@@ -52,13 +61,7 @@ randomGraph<-function(n,restrict=c('acyclic'),pedge=1/(n-1), topology="random") 
     
     M$B<-M$G*matrix(runif(n*n,0.2,0.8),n,n)*matrix(sample(c(-1,1),n*n,replace=TRUE),n,n)  
 
-  } else if (topology == 'example') {
-    #y-structure
-    M$G[3,1]<-M$G[3,2]<-M$G[4,3]<-1
-
-    M$B<-M$G*matrix(runif(n*n,0.2,0.8),n,n)*matrix(sample(c(-1,1),n*n,replace=TRUE),n,n)
-    
-  }
+  } 
   
   
   

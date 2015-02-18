@@ -1,14 +1,7 @@
 % guess
 
-%{ before(X,Y) } :- node(X), node(Y), X != Y.
 { edge(X,Y) } :- node(X), node(Y), X != Y.
 { conf(X,Y) } :- node(X), node(Y), X<Y.
-
-%the order is  transitive
-%:-not before(X,Z), before(X,Y), before(Y,Z), node(X), node(Y), node(Z), X != Y, Y != Z, X != Z.
-%before relation cannot happen in both directions
-%:-not before(Z,Y), not before(Y,Z), node(Y), node(Z), Y != Z.
-%:-before(Z,Y), before(Y,Z), node(Y), node(Z), Y != Z.
 
 %:- edge(X,Y), indep(X,Y,C,J), not ismember(C,X), not ismember(C,Y),  not ismember(J,Y), X<Y.
 %:- edge(Y,X), indep(X,Y,C,J), not ismember(C,X), not ismember(C,Y),  not ismember(J,X), X<Y.
